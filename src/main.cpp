@@ -7,6 +7,8 @@
 
 #include <iostream>
 
+#include "MumbleClient.h"
+
 using namespace std;
 
 int main(int argc, char **argv) {
@@ -14,6 +16,9 @@ int main(int argc, char **argv) {
 
 	cout << "Hello World !" << endl;
 
+	MumbleClient client(string("MusicBot"), string(""));
+
+	client.connect(string("jokercraft.fr"), string("64738"));
 
 	return 0;
 
