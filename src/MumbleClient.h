@@ -17,10 +17,12 @@
 #include <fstream>
 #include <iostream>
 #include <typeinfo>
+#include <deque>
 
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
@@ -42,6 +44,7 @@ public:
 private:
 	std::string userName;
 	std::string password;
+	std::deque<boost::shared_ptr<MumbleIO::MumblePacket>> packetQueue;
 	//tcp::socket *tcpSocket;
 	udp::socket *udpSocket;
 	stream<tcp::socket> *sslStream;

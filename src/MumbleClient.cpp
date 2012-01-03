@@ -27,12 +27,9 @@ void MumbleClient::mumbleConnect() {
 	mumbleVersion.set_version(MUMBLE_VERSION(1, 2, 2));
 	mumbleVersion.set_release("MumbleMusicBot 0.0.1-dev");
 
-	MumbleIO::MumblePacket versionPacket(MumbleIO::Version, mumbleVersion);
+	boost::shared_ptr<MumbleIO::MumblePacket> versionPacket = boost::make_shared<MumbleIO::MumblePacket>(MumbleIO::Version, mumbleVersion);
 
-	sendPacket(versionPacket);
-
-
-
+	this->packetQueue.push_back(versionPacket);
 
 }
 
@@ -106,7 +103,7 @@ void MumbleClient::infiniteReceivingLoop() {
 	while(isRunning) {
 
 
-		this->sslStream->
+		//this->sslStream->
 	}
 
 }
