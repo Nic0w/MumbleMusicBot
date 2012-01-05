@@ -18,6 +18,7 @@
 #include <iostream>
 #include <typeinfo>
 #include <deque>
+#include <typeinfo>
 
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
@@ -25,9 +26,8 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 
-#include <google/protobuf/io/zero_copy_stream_impl_lite.h>
-
 #include "Mumble.pb.h"
+#include "io/MumblePacket.h"
 
 using namespace boost::asio::ip;
 using namespace boost::asio::ssl;
@@ -44,7 +44,7 @@ public:
 private:
 	std::string userName;
 	std::string password;
-	std::deque<boost::shared_ptr<MumbleIO::MumblePacket>> packetQueue;
+	std::deque<boost::shared_ptr<MumbleIO::MumblePacket> > packetQueue;
 	//tcp::socket *tcpSocket;
 	udp::socket *udpSocket;
 	stream<tcp::socket> *sslStream;
@@ -55,7 +55,8 @@ private:
 
 
 	void mumbleConnect();
-	void sendPacket(MumbleIO::MumblePacket &packet);
+
+	void packetSent(const boost::system::error_code& errorCode, std::size_t bytesSent);
 
 	void infiniteReceivingLoop(); //receiverThread
 	void infiniteSendingLoop(); //senderThread

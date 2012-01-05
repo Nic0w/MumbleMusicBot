@@ -52,20 +52,19 @@ struct MumblePacketHeader {
 
 class MumblePacket {
 public:
-	MumblePacket(MumblePacketType type, Message &message);
+	MumblePacket(MumblePacketType type, const Message &message);
 	virtual ~MumblePacket();
 
 	int getPacketSize();
 
+	char *getRawData();
 	char *operator*(MumblePacket &packet);
 
 private:
-	Message &packetData;
+	char *messageData;
 	MumblePacketHeader packetHeader;
 
 	char *rawData;
-
-	void forgeRawData();
 };
 
 } /* namespace MumbleIO */

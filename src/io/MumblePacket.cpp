@@ -9,41 +9,38 @@
 
 namespace MumbleIO {
 
-MumblePacket::MumblePacket(MumblePacketType type, Message &message) {
+MumblePacket::MumblePacket(MumblePacketType type, const Message &message) {
 
+	int msgSize = message.ByteSize();
 
-	this->packetData = message;
+	this->messageData = new char[msgSize];
+	message.SerializePartialToArray(this->messageData, msgSize);
 
 	this->packetHeader.packetType = static_cast<short>(type);
 	this->packetHeader.packetLength = message.ByteSize() + 6; //The 6 more bytes are for the header (2 + 4 bytes -> type + size)
 
 	this->rawData = new char[this->packetHeader.packetLength];
 
-	forgeRawData();
+	memcpy(this->rawData, static_cast<void *>(&this->packetHeader), 6); //We copy the header.
+	memcpy(this->rawData+6, this->messageData, msgSize); //We copy the message
 }
 
 MumblePacket::~MumblePacket() {
-	// TODO Auto-generated destructor stub
-}
 
-void MumblePacket::forgeRawData() {
+	delete this->messageData;
+	delete this->rawData;
 
-	memcpy(this->rawData, static_cast<char *>(&this->packetHeader), 6); //We copy the header.
-
-	int messageSize = this->packetHeader.packetLength - 6;
-	char *dataBuffer = new char[messageSize];
-
-	this->packetData.SerializeToArray(dataBuffer, 6);
-
-	memcpy(this->rawData+6, dataBuffer, messageSize); //We copy the message
-
-	delete dataBuffer;
 }
 
 
 int MumblePacket::getPacketSize() {
 
 	return this->packetHeader.packetLength;
+}
+
+char *MumblePacket::getRawData() {
+
+	return this->rawData;
 }
 
 char *MumblePacket::operator*(MumblePacket &packet) {

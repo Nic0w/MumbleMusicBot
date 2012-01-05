@@ -85,13 +85,34 @@ void MumbleClient::connect(std::string address, std::string port) throw(std::exc
 
 }
 
-void MumbleClient::sendPacket(MumbleIO::MumblePacket &packet) {
+void MumbleClient::infiniteSendingLoop() {
 
-	boost::system::error_code error;
+	bool isRunning = true;
+	int bytesSent = 0;
 
-	boost::asio::const_buffer data(*packet, packet.getPacketSize());
+	std::vector<boost::asio::const_buffer> buffers;
 
-	int bytesWritten = this->sslStream->write_some(data, error);
+	while(isRunning) {
+		if(!this->packetQueue.empty()) {
+
+			boost::system::error_code errorCode;
+
+			boost::shared_ptr<MumbleIO::MumblePacket> packet = this->packetQueue.front();
+			boost::asio::const_buffer dataBuffer(packet->getRawData(), packet->getPacketSize());
+			buffers.push_back(dataBuffer);
+
+			bytesSent = this->sslStream->write_some(buffers, errorCode);
+			if(bytesSent != (*packet).getPacketSize() || errorCode) {
+				std::cout << "IO Error in infiniteSendingLoop " << std::endl;
+				isRunning = false;
+			}
+			else {
+				this->packetQueue.pop_front();
+				buffers.pop_back();
+			}
+
+		}
+	}
 
 }
 
@@ -99,11 +120,51 @@ void MumbleClient::sendPacket(MumbleIO::MumblePacket &packet) {
 void MumbleClient::infiniteReceivingLoop() {
 
 	bool isRunning = true;
+	int bytesRead = 0;
+
+	std::vector<boost::asio::mutable_buffer> buffers;
+
+	MumbleIO::MumblePacketHeader header;
+	char *messageData = NULL;
+
+	boost::asio::mutable_buffer headerBuf(reinterpret_cast<char *>(&header), 6);
+
+
 
 	while(isRunning) {
+		boost::system::error_code errorCode;
+
+		buffers.push_back(headerBuf);
+		bytesRead = this->sslStream->read_some(buffers, errorCode);
+
+		if(bytesRead != 6 || errorCode) {
+
+			//IO Error
+		}
+		else {
+
+			buffers.pop_back();
+
+			header.packetType = ntohs(header.packetType);
+			header.packetLength = ntohl(header.packetLength);
+
+			messageData = new char[header.packetLength];
+			boost::asio::mutable_buffer messageBuf(messageData, header.packetLength);
+
+			buffers.push_back(messageBuf);
+
+			bytesRead = this->sslStream->read_some(buffers, errorCode);
+
+		}
 
 
-		//this->sslStream->
+
+
+
+
+
+
+
 	}
 
 }
